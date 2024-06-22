@@ -3,10 +3,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'CreateEventsFirestore.dart';
+import 'admin_Upcoming_Events_Page.dart';
 
 class CreateEventsPage extends StatefulWidget {
-  const CreateEventsPage({Key? key}) : super(key: key);
-
   @override
   State<CreateEventsPage> createState() => _CreateEventsPageState();
 }
@@ -44,14 +43,22 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
-      } else {
-        print('No image selected.');
       }
     });
   }
 
   Future<void> _ClearRecords() async {
-      Reference storageReference = FirebaseStorage.instance.ref().child('events/${DateTime.now().toString()}');
+    if (_image == null ||
+        titleController.text.isEmpty ||
+        locationController.text.isEmpty ||
+        descriptionController.text.isEmpty ||
+        feeController.text.isEmpty) {
+      return;
+    }
+
+    try {
+      Reference storageReference =
+      FirebaseStorage.instance.ref().child('events/${DateTime.now().toString()}');
       UploadTask uploadTask = storageReference.putFile(_image!);
       await uploadTask.whenComplete(() => null);
       String imageUrl = await storageReference.getDownloadURL();
@@ -61,7 +68,14 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
       String eventDescription = descriptionController.text;
       String eventFee = feeController.text;
 
-      await firestoreCreateEvents.addEvent(eventTitle, eventLocation, eventDate, eventDescription, eventFee, imageUrl);
+      await firestoreCreateEvents.addEvent(
+        eventTitle,
+        eventLocation,
+        eventDate,
+        eventDescription,
+        eventFee,
+        imageUrl,
+      );
 
       titleController.clear();
       locationController.clear();
@@ -71,6 +85,9 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
       });
       descriptionController.clear();
       feeController.clear();
+    } catch (e) {
+      print('Failed to create event: $e');
+    }
   }
 
   @override
@@ -81,6 +98,7 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
         appBar: AppBar(
           title: Text('Create Events'),
           backgroundColor: Color(0xFFB9E5F8),
+          automaticallyImplyLeading: false,
         ),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -209,11 +227,7 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
                   height: 100,
                   width: 150,
                   decoration: BoxDecoration(
-                    // border: Border.all(
-                    //   color: Colors.grey,
-                    //   width: 1,
-                    // ),
-                    borderRadius: BorderRadius.circular(12), // Border radius
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -233,39 +247,39 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
                 SizedBox(height: 30),
                 Center(
                   child: Container(
-                  width: 170,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF78D2E6),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3), // changes position of shadow
+                    width: 170,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: Color(0xFF78D2E6),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: TextButton(
+                      onPressed: _ClearRecords,
+                      style: ButtonStyle(
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: TextButton(
-                    onPressed: _ClearRecords,
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                      child: Text(
+                        "Create Event",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff274560),
                         ),
                       ),
                     ),
-                    child: Text(
-                      "Create Event",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff274560),
-                      ),
-                    ),
                   ),
-                ),
                 ),
               ],
             ),
@@ -275,4 +289,3 @@ class _CreateEventsPageState extends State<CreateEventsPage> {
     );
   }
 }
-

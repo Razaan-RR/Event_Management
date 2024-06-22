@@ -1,53 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'adminLoginScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'adminLoginScreen.dart';
 
 class JoinAsAdminPage extends StatelessWidget {
-  const JoinAsAdminPage({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
 
-    Future<void> signInWithEmailAndPassword(String email, String password) async {
+    Future<void> signInWithEmailAndPassword(String email, String password, BuildContext context) async {
       try {
         UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        // Check the role of the user
-        String uid = userCredential.user!.uid; // Get the UID of the currently signed-in user
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+        User? user = userCredential.user;
+        if (user != null) {
+          DocumentSnapshot snapshot = await FirebaseFirestore.instance
+              .collection('admins')
+              .doc(user.uid)
+              .get();
 
-        if (userDoc.exists && userDoc.data() is Map) {
-          Map userData = userDoc.data() as Map<String, dynamic>;
-          String role = userData['role'];
-
-          if (role == 'admin') {
-            // If the user is an admin, navigate to the AdminUpcomingEvents page
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AdminLoginScreen()),
-            );
-          } else {
-            // If the user is not an admin, show an error message
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Access denied. Only admins can log in."),
-            ));
+          if (snapshot.exists) {
+            Map<String, dynamic>? userData = snapshot.data() as Map<String, dynamic>?;
+            if (userData != null && userData['email'] == email) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => AdminLoginScreen()),
+              );
+              return;
+            }
           }
-        } else {
-          // Handle the case where the user document does not exist or does not have the expected data
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("User profile error. Please contact support."),
-          ));
         }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Invalid credentials or unauthorized access.")),
+        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Sign-in error: $e"),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Sign-in error: $e")),
+        );
       }
     }
 
@@ -59,13 +52,10 @@ class JoinAsAdminPage extends StatelessWidget {
         ),
         body: SingleChildScrollView(
           child: Container(
-            width: double.infinity,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Image.asset('assets/admin_Sign_In.png'),
                 ),
                 SizedBox(height: 10),
@@ -75,14 +65,14 @@ class JoinAsAdminPage extends StatelessWidget {
                       Text(
                         "ULAB EventPedia",
                         style: TextStyle(
-                          color: Color.fromRGBO(5, 112, 126, 1.0),
+                          color: Color(0XFF05707E),
                           fontSize: 30,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
                           "Sign In to continue your journey as an Admin with us",
                           style: TextStyle(
@@ -98,7 +88,7 @@ class JoinAsAdminPage extends StatelessWidget {
                 ),
                 SizedBox(height: 30),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Container(
                     width: double.infinity,
                     height: 400,
@@ -117,7 +107,7 @@ class JoinAsAdminPage extends StatelessWidget {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -141,8 +131,11 @@ class JoinAsAdminPage extends StatelessWidget {
                             child: TextField(
                               controller: emailController,
                               decoration: InputDecoration(
-                                border: InputBorder.none,
-                              ),
+                                  border: InputBorder.none,
+                                  prefixIcon: Icon(
+                                    Icons.alternate_email,
+                                    color: Color(0XFF05707E),
+                                  )),
                             ),
                           ),
                           SizedBox(height: 30),
@@ -166,8 +159,11 @@ class JoinAsAdminPage extends StatelessWidget {
                             child: TextField(
                               controller: passwordController,
                               decoration: InputDecoration(
-                                border: InputBorder.none,
-                              ),
+                                  border: InputBorder.none,
+                                  prefixIcon: Icon(
+                                    Icons.key_outlined,
+                                    color: Color(0XFF05707E),
+                                  )),
                               obscureText: true,
                             ),
                           ),
@@ -181,14 +177,13 @@ class JoinAsAdminPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: TextButton(
-                                // onPressed: () {
-                                //   signInWithEmailAndPassword(emailController.text, passwordController.text);
-                                // },
                                 onPressed: () {
-                                  Navigator.push(
+                                  signInWithEmailAndPassword(
+                                    emailController.text,
+                                    passwordController.text,
                                     context,
-                                    MaterialPageRoute(builder: (context) => AdminLoginScreen()),
-                                  );                  },
+                                  );
+                                },
                                 child: Text(
                                   "Login",
                                   style: TextStyle(

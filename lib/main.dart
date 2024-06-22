@@ -1,24 +1,33 @@
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:ulab_eventpedia_main/mainscreen.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import 'package:ulab_eventpedia_main/user_Registrations_Provider.dart';
+import 'mainscreen.dart';
 import 'firebase_options.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
-} 
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserRegistrationsProvider(),
+      child: MyApp(),
+    ),
+  );
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Flutter Demo',
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: OnBoardingScreen(),
+      routes: {
+        // Define your routes here
+        // For example:
+        // '/notifications': (context) => NotificationsPage(),
+      },
     );
   }
 }

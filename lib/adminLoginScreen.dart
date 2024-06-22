@@ -5,7 +5,6 @@ import 'AdminProfilePage.dart';
 import 'admin_Upcoming_Events_Page.dart';
 
 class AdminLoginScreen extends StatefulWidget {
-  const AdminLoginScreen({Key? key}) : super(key: key);
 
   @override
   State<AdminLoginScreen> createState() => _AdminLoginScreenState();

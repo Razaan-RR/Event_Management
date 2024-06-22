@@ -1,14 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'admin_SignIn_page.dart';
+import 'package:ulab_eventpedia_main/user_Edit_Profile.dart';
+import 'user_SignIn_page.dart';
 
-class AdminProfilePage extends StatelessWidget {
+class UserProfilePage extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<Map<String, dynamic>?> _fetchUserData(String uid) async {
-    DocumentSnapshot userDoc = await _firestore.collection('admins').doc(uid).get();
+    DocumentSnapshot userDoc = await _firestore.collection('general_users').doc(uid).get();
     return userDoc.data() as Map<String, dynamic>?;
   }
 
@@ -62,6 +63,27 @@ class AdminProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
+                      Positioned(
+                        bottom: -10,
+                        right: -10,
+                        child: IconButton(
+                          icon: Icon(Icons.edit),
+                          color: Color(0xFF409DAA),
+                          iconSize: 30,
+                          onPressed: () async {
+                            final bool isUpdated = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => EditProfilePage())
+                            );
+                            if (isUpdated == true) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => UserProfilePage()),
+                              );
+                            }
+                          },
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 20),
@@ -77,6 +99,16 @@ class AdminProfilePage extends StatelessWidget {
                       children: [
                         Text(
                           'Name: ${userData['name']}',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'ID: ${userData['id']}',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Department: ${userData['department']}',
                           style: TextStyle(fontSize: 20),
                         ),
                         SizedBox(height: 10),
@@ -106,7 +138,7 @@ class AdminProfilePage extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => JoinAsAdminPage(),
+                            builder: (context) => JoinAsUserPage(),
                           ),
                         );
                       },

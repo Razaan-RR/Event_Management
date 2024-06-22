@@ -42,6 +42,8 @@ dependencies:
   cloud_firestore: ^4.15.9
   image_picker: ^1.0.7
   firebase_storage: ^11.6.10
+  provider: ^6.1.2
+  url_launcher: ^6.2.6
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +75,12 @@ flutter:
      - assets/previous_events.png
      - assets/create_events.png
      - assets/home_page.png
+     - assets/user_sign_In.png
+     - assets/notif.png
+     - assets/joined-events.png
+     - assets/card.png
+     - assets/nogod.png
+     - assets/bkash.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

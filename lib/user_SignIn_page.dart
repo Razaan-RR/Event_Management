@@ -1,59 +1,47 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'generalUserLoginScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'userLoginScreen.dart';
+import 'user_SignUp_page.dart';
 
-class JoinAsGeneralUserPage extends StatelessWidget {
-  const JoinAsGeneralUserPage({Key? key}) : super(key: key);
-
+class JoinAsUserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
 
-    Future<void> signInWithEmailAndPassword(String email, String password) async {
+    Future<void> signInWithEmailAndPassword(String email, String password, BuildContext context) async {
       try {
         UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        // Check the role of the user
-        String uid = userCredential.user!.uid; // Get the UID of the currently signed-in user
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+        User? user = userCredential.user;
+        if (user != null) {
+          DocumentSnapshot snapshot = await FirebaseFirestore.instance
+              .collection('general_users')
+              .doc(user.uid)
+              .get();
 
-        if (userDoc.exists && userDoc.data() is Map) {
-          Map userData = userDoc.data() as Map<String, dynamic>;
-          String role = userData['role']; // Assuming you have a 'role' field
-
-          if (role == 'general_User') {
-            // If the user is a general user, navigate to the GeneralUserUpcomingEvents page
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => GeneralUserLoginScreen()),
-            );
-          } else {
-            // If the user is not a general user, show an error message
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Access denied. Only general users can log in."),
-            ));
-
-            // Optional: sign out the user
-            FirebaseAuth.instance.signOut();
+          if (snapshot.exists) {
+            Map<String, dynamic>? userData = snapshot.data() as Map<String, dynamic>?;
+            if (userData != null && userData['email'] == email) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => UserLoginScreen()),
+              );
+              return;
+            }
           }
-        } else {
-          // Handle the case where the user document does not exist or does not have the expected data
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("User profile error. Please contact support."),
-          ));
-
-          // Optional: sign out the user
-          FirebaseAuth.instance.signOut();
         }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Invalid credentials or user not authorized.")),
+        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Sign-in error: $e"),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Sign-in error: $e")),
+        );
       }
     }
 
@@ -65,14 +53,15 @@ class JoinAsGeneralUserPage extends StatelessWidget {
         ),
         body: SingleChildScrollView(
           child: Container(
-            width: double.infinity,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Image.asset('assets/admin_Sign_In.png'),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Image.asset(
+                    'assets/user_sign_In.png',
+                    height: 250,
+                    width: 250,
+                  ),
                 ),
                 SizedBox(height: 10),
                 Center(
@@ -81,14 +70,14 @@ class JoinAsGeneralUserPage extends StatelessWidget {
                       Text(
                         "ULAB EventPedia",
                         style: TextStyle(
-                          color: Color.fromRGBO(5, 112, 126, 1.0),
+                          color: Color(0XFF05707E),
                           fontSize: 30,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
                           "Sign In to continue your journey as a General User with us",
                           style: TextStyle(
@@ -104,10 +93,10 @@ class JoinAsGeneralUserPage extends StatelessWidget {
                 ),
                 SizedBox(height: 30),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Container(
                     width: double.infinity,
-                    height: 400,
+                    height: 500,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -123,7 +112,7 @@ class JoinAsGeneralUserPage extends StatelessWidget {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -148,6 +137,10 @@ class JoinAsGeneralUserPage extends StatelessWidget {
                               controller: emailController,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
+                                prefixIcon: Icon(
+                                  Icons.alternate_email,
+                                  color: Color(0XFF05707E),
+                                ),
                               ),
                             ),
                           ),
@@ -173,6 +166,10 @@ class JoinAsGeneralUserPage extends StatelessWidget {
                               controller: passwordController,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
+                                prefixIcon: Icon(
+                                  Icons.key_outlined,
+                                  color: Color(0XFF05707E),
+                                ),
                               ),
                               obscureText: true,
                             ),
@@ -188,10 +185,58 @@ class JoinAsGeneralUserPage extends StatelessWidget {
                               ),
                               child: TextButton(
                                 onPressed: () {
-                                  signInWithEmailAndPassword(emailController.text, passwordController.text);
+                                  signInWithEmailAndPassword(
+                                    emailController.text,
+                                    passwordController.text,
+                                    context,
+                                  );
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => UserLoginScreen(),
+                                  //   ),
+                                  // );
                                 },
                                 child: Text(
                                   "Login",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 25,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 30),
+                          Center(
+                            child: Text(
+                              "Not registered yet?",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Center(
+                            child: Container(
+                              width: 270,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Color(0xFF53bcd4),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => UserSignUpPage(),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  "Signup",
                                   style: TextStyle(
                                     color: Colors.black,
                                     fontSize: 25,

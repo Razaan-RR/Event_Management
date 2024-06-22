@@ -1,36 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:ulab_eventpedia_main/user_JoinedEvents.dart';
+import 'package:ulab_eventpedia_main/user_Notifications_Page.dart';
+import 'package:ulab_eventpedia_main/user_Prev_Events_Page.dart';
+import 'package:ulab_eventpedia_main/user_Upcoming_Events_Page.dart';
+import 'UserProfilePage.dart';
 
-class GeneralUserLoginScreen extends StatefulWidget {
-  const GeneralUserLoginScreen({super.key});
+class UserLoginScreen extends StatefulWidget {
 
   @override
-  State<GeneralUserLoginScreen> createState() =>
-      _GeneralUserUpcomingEventsState();
+  State<UserLoginScreen> createState() => _UserLoginScreenState();
 }
 
-class _GeneralUserUpcomingEventsState
-    extends State<GeneralUserLoginScreen> {
+class _UserLoginScreenState extends State<UserLoginScreen> {
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'GU Upcoming Events Page',
-      style: optionStyle,
-    ),
-    Text(
-      'GU Previous Events Page',
-      style: optionStyle,
-    ),
-    Text(
-      'GU Create Events Page',
-      style: optionStyle,
-    ),
-    Text(
-      'User Profile',
-      style: optionStyle,
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -41,8 +23,15 @@ class _GeneralUserUpcomingEventsState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          UserUpcomingEventsPage(),
+          UserPreviousEventsPage(),
+          UserJoinedEventsPage(),
+          NotificationsPage(),
+          UserProfilePage(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
@@ -52,7 +41,7 @@ class _GeneralUserUpcomingEventsState
               width: 24,
               height: 24,
             ),
-            label: 'Home',
+            label: 'Upcoming Events',
           ),
           BottomNavigationBarItem(
             icon: Image.asset(
@@ -64,11 +53,19 @@ class _GeneralUserUpcomingEventsState
           ),
           BottomNavigationBarItem(
             icon: Image.asset(
-              'assets/create_events.png',
+              'assets/joined-events.png',
               width: 24,
               height: 24,
             ),
-            label: 'Create Events',
+            label: 'Joined Events',
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset(
+              'assets/notif.png',
+              width: 24,
+              height: 24,
+            ),
+            label: 'Notifications',
           ),
           BottomNavigationBarItem(
             icon: Image.asset(
@@ -82,9 +79,8 @@ class _GeneralUserUpcomingEventsState
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
+        backgroundColor: Color(0xFFB9E5F8),
       ),
     );
   }
 }
-
-
